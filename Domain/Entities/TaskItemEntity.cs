@@ -1,0 +1,20 @@
+﻿using Domain.Enums;
+
+namespace Domain.Entities;
+
+public class TaskItemEntity
+{
+    public int Id { get; set; }
+    public required string Title { get; set; }
+    public string? Description { get; set; }
+    
+    public TaskItemStatus Status { get; set; } = TaskItemStatus.Todo;
+    public TaskPriority Priority { get; set; } = TaskPriority.Medium;
+
+    public DateTimeOffset? DueDate { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    
+    public int ProjectId { get; set; }
+    public ProjectEntity Project { get; set; } = null!;
+}
