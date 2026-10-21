@@ -2,9 +2,8 @@
 
 namespace Domain.Entities;
 
-public class TaskItemEntity
-{
-    public int Id { get; set; }
+public class TaskItemEntity : BaseEntity
+{ 
     public required string Title { get; set; }
     public string? Description { get; set; }
     

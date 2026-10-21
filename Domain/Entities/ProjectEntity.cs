@@ -1,8 +1,7 @@
 ﻿namespace Domain.Entities;
 
-public class ProjectEntity
+public class ProjectEntity : BaseEntity
 {
-    public int Id { get; set; }
     public required string Name { get; set; }
     public string? Description { get; set; }
     

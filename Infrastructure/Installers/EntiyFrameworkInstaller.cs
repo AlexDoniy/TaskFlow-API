@@ -1,4 +1,4 @@
-﻿using Infrasructure.Persistence.MsSQL;
+﻿using Infrastructure.Persistence.MsSQL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

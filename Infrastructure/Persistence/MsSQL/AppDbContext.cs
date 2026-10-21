@@ -1,10 +1,12 @@
-﻿using Domain.Entities;
+﻿using Application.Abstractions;
+using Application.Abstractions.Interfaces;
+using Domain.Entities;
 using Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrasructure.Persistence.MsSQL;
+namespace Infrastructure.Persistence.MsSQL;
 
-public class AppDbContext : DbContext
+public class AppDbContext : DbContext, IUnitOfWork
 {
 
     public AppDbContext(DbContextOptions<AppDbContext> options) :
@@ -20,6 +22,5 @@ public class AppDbContext : DbContext
 
     public DbSet<ProjectEntity> Projects { get; set; }
     public DbSet<TaskItemEntity> Tasks { get; set; }
-    
-    
+
 }

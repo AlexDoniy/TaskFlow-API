@@ -6,7 +6,10 @@ var configuration = builder.Configuration;
 
 services.AddControllers();
 services.AddOpenApi();
+
 services.InstallEntityFramework(configuration);
+services.InstallIUnitOfWork();
+services.InstallRepositories();
 
 var app = builder.Build();
 
