@@ -1,3 +1,4 @@
+using Application.Installers;
 using Infrastructure.Installers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,8 @@ services.AddOpenApi();
 services.InstallEntityFramework(configuration);
 services.InstallIUnitOfWork();
 services.InstallRepositories();
+
+services.InstallServices();
 
 var app = builder.Build();
 
