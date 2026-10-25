@@ -34,6 +34,41 @@ public class ProjectsController : ControllerBase
         if (project is null)
             return NotFound();
 
-        return project;
+        return Ok(project);
+    }
+    
+    [HttpGet]
+    [ProducesResponseType<IReadOnlyList<ProjectResponse>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<ProjectResponse>>> GetAll(CancellationToken ct)
+    {
+        var projects = await _projectService.GetAllAsync(ct);
+        return Ok(projects);
+    }
+
+    [HttpPut("{id:int:min(1)}")]
+    [ProducesResponseType<ProjectResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectResponse>> Update(int id, UpdateProjectRequest request, CancellationToken ct)
+    {
+        var project = await _projectService.UpdateAsync(id, request, ct);
+        
+        if (project is null)
+            return NotFound();
+
+        return Ok(project);
+    }
+    
+    [HttpDelete("{id:int:min(1)}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        var deleted = await _projectService.DeleteAsync(id, ct);
+
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
     }
 }

@@ -8,6 +8,7 @@ namespace Application.Services;
 
 public class ProjectService : IProjectService
 {
+    
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProjectRepository _repository;
     private readonly TimeProvider _timeProvider;
@@ -39,7 +40,39 @@ public class ProjectService : IProjectService
         return project is null ? null : ToResponse(project);
     }
 
+    public async Task<IReadOnlyList<ProjectResponse>> GetAllAsync(CancellationToken ct)
+    {
+        var projects = await _repository.GetAllAsync(ct);
+        var responseCollection = projects
+            .Select(ToResponse)
+            .ToList();
 
+        return responseCollection;
+    }
+
+    public async Task<ProjectResponse?> UpdateAsync(int id, UpdateProjectRequest request, CancellationToken ct)
+    {
+        var project = await _repository.GetByIdAsync(id, ct);
+        
+        if (project is null) return null;
+        
+        project.Name = request.Name;
+        project.Description = request.Description;
+        await _unitOfWork.SaveChangesAsync(ct);
+        
+        return ToResponse(project);
+    }
+
+    public async Task<bool> DeleteAsync(int id, CancellationToken ct)
+    {
+        var project = await _repository.GetByIdAsync(id, ct);
+        if (project is null) return false;
+        
+        _repository.Remove(project);
+        await _unitOfWork.SaveChangesAsync(ct);
+        return true;
+    }
+    
     private static ProjectResponse ToResponse(ProjectEntity project) =>
         new()
         {
