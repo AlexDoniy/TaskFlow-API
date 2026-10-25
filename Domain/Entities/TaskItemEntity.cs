@@ -8,7 +8,7 @@ public class TaskItemEntity : BaseEntity
     public string? Description { get; set; }
     
     public TaskItemStatus Status { get; set; } = TaskItemStatus.Todo;
-    public TaskPriority Priority { get; set; } = TaskPriority.Medium;
+    public TaskItemPriority Priority { get; set; } = TaskItemPriority.Medium;
 
     public DateTimeOffset? DueDate { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Application.Installers;
 using Infrastructure.Installers;
 
@@ -5,7 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-services.AddControllers();
+services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 services.AddOpenApi();
 
 services.InstallEntityFramework(configuration);

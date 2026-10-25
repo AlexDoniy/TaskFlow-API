@@ -21,6 +21,7 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<ProjectResponse>> Create(CreateProjectRequest request, CancellationToken ct)
     {
         var createdProject = await _projectService.CreateAsync(request, ct);
+        
         return CreatedAtAction(nameof(GetById), new { id = createdProject.Id }, createdProject);
     }
 

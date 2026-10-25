@@ -10,7 +10,8 @@ public static class ServicesInstaller
     public static void InstallServices(this IServiceCollection services)
     {
         services.AddSingleton(TimeProvider.System);
-        
         services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<ITaskItemService, TaskItemService>();
+
     }    
 }
