@@ -14,6 +14,6 @@ public class TaskItemEntity : BaseEntity
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     public ProjectEntity Project { get; set; } = null!;
 }

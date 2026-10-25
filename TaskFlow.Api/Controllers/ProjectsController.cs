@@ -24,10 +24,10 @@ public class ProjectsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = createdProject.Id }, createdProject);
     }
 
-    [HttpGet("{id:int:min(1)}")]
+    [HttpGet("{id:guid}")]
     [ProducesResponseType<ProjectResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponse>> GetById(int id, CancellationToken ct)
+    public async Task<ActionResult<ProjectResponse>> GetById(Guid id, CancellationToken ct)
     {
         var project = await _projectService.GetByIdAsync(id, ct);
 
@@ -45,11 +45,11 @@ public class ProjectsController : ControllerBase
         return Ok(projects);
     }
 
-    [HttpPut("{id:int:min(1)}")]
+    [HttpPut("{id:guid}")]
     [ProducesResponseType<ProjectResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponse>> Update(int id, UpdateProjectRequest request, CancellationToken ct)
+    public async Task<ActionResult<ProjectResponse>> Update(Guid id, UpdateProjectRequest request, CancellationToken ct)
     {
         var project = await _projectService.UpdateAsync(id, request, ct);
         
@@ -59,10 +59,10 @@ public class ProjectsController : ControllerBase
         return Ok(project);
     }
     
-    [HttpDelete("{id:int:min(1)}")]
+    [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         var deleted = await _projectService.DeleteAsync(id, ct);
 

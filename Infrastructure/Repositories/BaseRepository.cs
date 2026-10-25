@@ -21,7 +21,7 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity
         return await Set.AsNoTracking().ToListAsync(ct);
     }
 
-    public async Task<T?> GetByIdAsync(int id, CancellationToken ct)
+    public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await Set.FindAsync([id], ct);
     }

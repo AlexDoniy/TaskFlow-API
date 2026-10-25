@@ -34,7 +34,7 @@ public class ProjectService : IProjectService
         return ToResponse(project);
     }
 
-    public async Task<ProjectResponse?> GetByIdAsync(int id, CancellationToken ct)
+    public async Task<ProjectResponse?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         var project = await _repository.GetByIdAsync(id, ct);
         return project is null ? null : ToResponse(project);
@@ -50,7 +50,7 @@ public class ProjectService : IProjectService
         return responseCollection;
     }
 
-    public async Task<ProjectResponse?> UpdateAsync(int id, UpdateProjectRequest request, CancellationToken ct)
+    public async Task<ProjectResponse?> UpdateAsync(Guid id, UpdateProjectRequest request, CancellationToken ct)
     {
         var project = await _repository.GetByIdAsync(id, ct);
         
@@ -63,7 +63,7 @@ public class ProjectService : IProjectService
         return ToResponse(project);
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken ct)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
         var project = await _repository.GetByIdAsync(id, ct);
         if (project is null) return false;
