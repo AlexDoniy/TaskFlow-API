@@ -2,7 +2,9 @@
 using Application.Abstractions.Interfaces.Repositories;
 using Application.Abstractions.Interfaces.Services;
 using Application.Dtos.Projects;
+using Application.Exceptions;
 using Domain.Entities;
+using FluentValidation;
 
 namespace Application.Services;
 
@@ -12,16 +14,27 @@ public class ProjectService : IProjectService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProjectRepository _projectRepository;
     private readonly TimeProvider _timeProvider;
+    private readonly IValidator<CreateProjectRequest> _createProjectRequestValidator;
+    private readonly IValidator<UpdateProjectRequest> _updateProjectRequestValidator;
 
-    public ProjectService(IProjectRepository projectRepository, IUnitOfWork unitOfWork, TimeProvider timeProvider)
+    public ProjectService(IProjectRepository projectRepository,
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider,
+        IValidator<CreateProjectRequest> createProjectRequestValidator,
+        IValidator<UpdateProjectRequest> updateProjectRequestValidator
+        )
     {
         _unitOfWork = unitOfWork;
         _projectRepository = projectRepository;
         _timeProvider = timeProvider;
+        _createProjectRequestValidator = createProjectRequestValidator;
+        _updateProjectRequestValidator = updateProjectRequestValidator;
     }
 
     public async Task<ProjectResponse> CreateAsync(CreateProjectRequest request, CancellationToken ct)
     {
+        await _createProjectRequestValidator.ValidateAndThrowAsync(request, ct);
+        
         var project = new ProjectEntity
         {
             Name = request.Name,
@@ -34,10 +47,14 @@ public class ProjectService : IProjectService
         return ToResponse(project);
     }
 
-    public async Task<ProjectResponse?> GetByIdAsync(Guid id, CancellationToken ct)
+    public async Task<ProjectResponse> GetByIdAsync(Guid id, CancellationToken ct)
     {
         var project = await _projectRepository.GetByIdAsync(id, ct);
-        return project is null ? null : ToResponse(project);
+
+        if (project is null) throw new NotFoundException("Project", id);
+        
+        
+        return ToResponse(project);
     }
 
     public async Task<IReadOnlyList<ProjectResponse>> GetAllAsync(CancellationToken ct)
@@ -50,11 +67,13 @@ public class ProjectService : IProjectService
         return responseCollection;
     }
 
-    public async Task<ProjectResponse?> UpdateAsync(Guid id, UpdateProjectRequest request, CancellationToken ct)
+    public async Task<ProjectResponse> UpdateAsync(Guid id, UpdateProjectRequest request, CancellationToken ct)
     {
+        
+        await _updateProjectRequestValidator.ValidateAndThrowAsync(request, ct);
         var project = await _projectRepository.GetByIdAsync(id, ct);
         
-        if (project is null) return null;
+        if (project is null) throw new NotFoundException("Project", id);
         
         project.Name = request.Name;
         project.Description = request.Description;
@@ -63,14 +82,15 @@ public class ProjectService : IProjectService
         return ToResponse(project);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
+    public async Task DeleteAsync(Guid id, CancellationToken ct)
     {
         var project = await _projectRepository.GetByIdAsync(id, ct);
-        if (project is null) return false;
+        
+        if (project is null) throw new NotFoundException("Project", id);
         
         _projectRepository.Remove(project);
         await _unitOfWork.SaveChangesAsync(ct);
-        return true;
+
     }
     
     private static ProjectResponse ToResponse(ProjectEntity project) =>

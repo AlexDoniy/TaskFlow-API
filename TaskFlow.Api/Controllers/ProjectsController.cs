@@ -31,10 +31,6 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<ProjectResponse>> GetById(Guid id, CancellationToken ct)
     {
         var project = await _projectService.GetByIdAsync(id, ct);
-
-        if (project is null)
-            return NotFound();
-
         return Ok(project);
     }
     
@@ -54,9 +50,6 @@ public class ProjectsController : ControllerBase
     {
         var project = await _projectService.UpdateAsync(id, request, ct);
         
-        if (project is null)
-            return NotFound();
-
         return Ok(project);
     }
     
@@ -65,11 +58,7 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        var deleted = await _projectService.DeleteAsync(id, ct);
-
-        if (!deleted)
-            return NotFound();
-
+        await _projectService.DeleteAsync(id, ct);
         return NoContent();
     }
 }
