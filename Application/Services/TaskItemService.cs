@@ -17,13 +17,16 @@ public class TaskItemService : ITaskItemService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateTaskItemRequest> _createTaskItemValidator;
     private readonly IValidator<UpdateTaskItemRequest> _updateTaskItemValidator;
+    private readonly IValidator<UpdateTaskItemStatusRequest> _updateTaskItemStatusValidator;
+
 
     public TaskItemService(ITaskItemRepository taskItemRepository,
         IProjectRepository projectRepository,
         IUnitOfWork unitOfWork,
         TimeProvider timeProvider,
         IValidator<CreateTaskItemRequest> createTaskItemValidator,
-        IValidator<UpdateTaskItemRequest> updateTaskItemValidator)
+        IValidator<UpdateTaskItemRequest> updateTaskItemValidator,
+        IValidator<UpdateTaskItemStatusRequest> updateTaskItemStatusValidator)
     {
         _taskItemRepository = taskItemRepository;
         _projectRepository = projectRepository;
@@ -31,6 +34,7 @@ public class TaskItemService : ITaskItemService
         _timeProvider = timeProvider;
         _createTaskItemValidator = createTaskItemValidator;
         _updateTaskItemValidator = updateTaskItemValidator;
+        _updateTaskItemStatusValidator = updateTaskItemStatusValidator;
     }
 
     public async Task<TaskItemResponse> CreateAsync(Guid projectId, CreateTaskItemRequest request, CancellationToken ct)
@@ -86,7 +90,6 @@ public class TaskItemService : ITaskItemService
         
         task.Title = request.Title;
         task.Description = request.Description;
-        task.Status = request.Status;
         task.Priority = request.Priority;
         task.DueDate = request.DueDate;
         task.UpdatedAt = _timeProvider.GetUtcNow();
@@ -105,6 +108,27 @@ public class TaskItemService : ITaskItemService
         _taskItemRepository.Remove(task);
         await _unitOfWork.SaveChangesAsync(ct);
     }
+
+
+    public async Task<TaskItemResponse> UpdateStatusAsync(Guid projectId, Guid id, UpdateTaskItemStatusRequest request, CancellationToken ct)
+    {
+        await _updateTaskItemStatusValidator.ValidateAndThrowAsync(request, ct);
+        
+        var task = await _taskItemRepository.GetByIdInProjectAsync(projectId, id, ct);
+        if (task is null) throw new NotFoundException("Task", id);
+
+        if (task.Status == TaskItemStatus.Todo && request.Status == TaskItemStatus.Done)
+            throw new ConflictException("Cannot change task status from Todo directly to Done. Move the task to InProgress first.");
+        if (task.Status == request.Status)
+            throw new ConflictException($"Task already has status {task.Status}.");
+        
+        task.Status = request.Status;
+        task.UpdatedAt = _timeProvider.GetUtcNow();
+        
+        await _unitOfWork.SaveChangesAsync(ct);
+        
+        return ToResponse(task);
+    }
     
     private static TaskItemResponse ToResponse(TaskItemEntity task) =>
         new()
@@ -119,4 +143,6 @@ public class TaskItemService : ITaskItemService
             CreatedAt = task.CreatedAt,
             UpdatedAt = task.UpdatedAt
         };
+    
+    
 }

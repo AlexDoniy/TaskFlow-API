@@ -62,4 +62,16 @@ public class TasksController : ControllerBase
         return NoContent();
     }
     
+    
+    [HttpPatch("{id:guid}/status")]
+    [ProducesResponseType<TaskItemResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<TaskItemResponse>> UpdateStatus(Guid projectId, Guid id, UpdateTaskItemStatusRequest request, CancellationToken ct)
+    {
+        var task = await _taskService.UpdateStatusAsync(projectId, id, request, ct);
+        return Ok(task);
+    }
+    
 }

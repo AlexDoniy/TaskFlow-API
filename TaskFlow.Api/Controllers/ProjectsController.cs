@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions.Interfaces.Services;
 using Application.Dtos.Projects;
+using Application.Dtos.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 namespace TaskFlow.Api.Controllers;

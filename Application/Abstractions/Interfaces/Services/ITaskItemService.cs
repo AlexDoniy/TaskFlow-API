@@ -9,5 +9,7 @@ public interface ITaskItemService
     Task<TaskItemResponse> GetByIdAsync(Guid projectId, Guid id, CancellationToken ct);
     Task<IReadOnlyList<TaskItemResponse>> GetAllAsync(Guid projectId, CancellationToken ct);
     Task<TaskItemResponse> UpdateAsync(Guid projectId, Guid id, UpdateTaskItemRequest request, CancellationToken ct);
+    Task<TaskItemResponse> UpdateStatusAsync(Guid projectId, Guid id, UpdateTaskItemStatusRequest request, CancellationToken ct);
+
     Task DeleteAsync(Guid projectId, Guid id, CancellationToken ct);
 }
