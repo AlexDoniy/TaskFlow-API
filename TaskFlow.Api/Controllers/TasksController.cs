@@ -22,10 +22,6 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<TaskItemResponse>> Create(Guid projectId, CreateTaskItemRequest request, CancellationToken ct)
     {
         var createdTask = await _taskService.CreateAsync(projectId, request, ct);
-        
-        if (createdTask is null)
-            return NotFound();
-        
         return CreatedAtAction(nameof(GetById), new { projectId, id = createdTask.Id }, createdTask);
     }
     
@@ -35,10 +31,6 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<TaskItemResponse>> GetById(Guid projectId, Guid id, CancellationToken ct)
     {
         var task = await _taskService.GetByIdAsync(projectId, id, ct);
-
-        if (task is null)
-            return NotFound();
-
         return Ok(task);
     }
     
@@ -48,8 +40,6 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<TaskItemResponse>>> GetAll(Guid projectId, CancellationToken ct)
     {
         var tasks = await _taskService.GetAllAsync(projectId, ct);
-
-        if (tasks is null) return NotFound();
         return Ok(tasks);
     }
     
@@ -60,10 +50,6 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<TaskItemResponse>> Update(Guid projectId, Guid id, UpdateTaskItemRequest request, CancellationToken ct)
     {
         var task = await _taskService.UpdateAsync(projectId, id, request, ct);
-        
-        if (task is null)
-            return NotFound();
-
         return Ok(task);
     }
  
@@ -72,11 +58,7 @@ public class TasksController : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid projectId, Guid id, CancellationToken ct)
     {
-        var deleted = await _taskService.DeleteAsync(projectId, id, ct);
-
-        if (!deleted)
-            return NotFound();
-
+        await _taskService.DeleteAsync(projectId, id, ct);
         return NoContent();
     }
     

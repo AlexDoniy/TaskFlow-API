@@ -1,7 +1,7 @@
 ﻿using Application.Dtos.Projects;
 using FluentValidation;
 
-namespace Application.Validators;
+namespace Application.Validators.Projects;
 
 public class UpdateProjectRequestValidator : AbstractValidator<UpdateProjectRequest>
 {

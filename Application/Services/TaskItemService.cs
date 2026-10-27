@@ -2,8 +2,10 @@
 using Application.Abstractions.Interfaces.Repositories;
 using Application.Abstractions.Interfaces.Services;
 using Application.Dtos.Tasks;
+using Application.Exceptions;
 using Domain.Entities;
 using Domain.Enums;
+using FluentValidation;
 
 namespace Application.Services;
 
@@ -13,18 +15,28 @@ public class TaskItemService : ITaskItemService
     private readonly IProjectRepository _projectRepository;
     private readonly TimeProvider _timeProvider;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IValidator<CreateTaskItemRequest> _createTaskItemValidator;
+    private readonly IValidator<UpdateTaskItemRequest> _updateTaskItemValidator;
 
-    public TaskItemService(ITaskItemRepository taskItemRepository, IProjectRepository projectRepository, IUnitOfWork unitOfWork, TimeProvider timeProvider)
+    public TaskItemService(ITaskItemRepository taskItemRepository,
+        IProjectRepository projectRepository,
+        IUnitOfWork unitOfWork,
+        TimeProvider timeProvider,
+        IValidator<CreateTaskItemRequest> createTaskItemValidator,
+        IValidator<UpdateTaskItemRequest> updateTaskItemValidator)
     {
         _taskItemRepository = taskItemRepository;
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
         _timeProvider = timeProvider;
+        _createTaskItemValidator = createTaskItemValidator;
+        _updateTaskItemValidator = updateTaskItemValidator;
     }
 
-    public async Task<TaskItemResponse?> CreateAsync(Guid projectId, CreateTaskItemRequest request, CancellationToken ct)
+    public async Task<TaskItemResponse> CreateAsync(Guid projectId, CreateTaskItemRequest request, CancellationToken ct)
     {
-        if (!await _projectRepository.ExistsAsync(projectId, ct)) return null;
+        await _createTaskItemValidator.ValidateAndThrowAsync(request, ct);
+        if (!await _projectRepository.ExistsAsync(projectId, ct)) throw new NotFoundException("Project", projectId);
 
         var time = _timeProvider.GetUtcNow();
         
@@ -45,16 +57,17 @@ public class TaskItemService : ITaskItemService
         return ToResponse(task);
     }
 
-    public async Task<TaskItemResponse?> GetByIdAsync(Guid projectId, Guid id, CancellationToken ct)
+    public async Task<TaskItemResponse> GetByIdAsync(Guid projectId, Guid id, CancellationToken ct)
     {
-        var result = await _taskItemRepository.GetByIdInProjectAsync(projectId, id, ct);
+        var task = await _taskItemRepository.GetByIdInProjectAsync(projectId, id, ct);
 
-        return result is null ? null : ToResponse(result);
+        if (task is null) throw new NotFoundException("Task", id);
+        return ToResponse(task);
     }
     
-    public async Task<IReadOnlyList<TaskItemResponse>?> GetAllAsync(Guid projectId, CancellationToken ct)
+    public async Task<IReadOnlyList<TaskItemResponse>> GetAllAsync(Guid projectId, CancellationToken ct)
     {
-        if (!await _projectRepository.ExistsAsync(projectId, ct)) return null;
+        if (!await _projectRepository.ExistsAsync(projectId, ct))  throw new NotFoundException("Project", projectId);
         
         var tasks = await _taskItemRepository.GetAllByProjectAsync(projectId, ct);
         var responseCollection = tasks
@@ -64,12 +77,12 @@ public class TaskItemService : ITaskItemService
         return responseCollection;
     }
     
-    public async Task<TaskItemResponse?> UpdateAsync(Guid projectId, Guid id, UpdateTaskItemRequest request, CancellationToken ct)
+    public async Task<TaskItemResponse> UpdateAsync(Guid projectId, Guid id, UpdateTaskItemRequest request, CancellationToken ct)
     {
-
+        await _updateTaskItemValidator.ValidateAndThrowAsync(request, ct);
         var task = await _taskItemRepository.GetByIdInProjectAsync(projectId, id, ct);
 
-        if (task is null) return null;
+        if (task is null) throw new NotFoundException("Task", id);
         
         task.Title = request.Title;
         task.Description = request.Description;
@@ -83,15 +96,14 @@ public class TaskItemService : ITaskItemService
         return ToResponse(task);
     }
 
-    public async Task<bool> DeleteAsync(Guid projectId, Guid id, CancellationToken ct)
+    public async Task DeleteAsync(Guid projectId, Guid id, CancellationToken ct)
     {
         
         var task = await _taskItemRepository.GetByIdInProjectAsync(projectId, id, ct);
-        if (task is null) return false;
+        if (task is null) throw new NotFoundException("Task", id);
         
         _taskItemRepository.Remove(task);
         await _unitOfWork.SaveChangesAsync(ct);
-        return true;
     }
     
     private static TaskItemResponse ToResponse(TaskItemEntity task) =>

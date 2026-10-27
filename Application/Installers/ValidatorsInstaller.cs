@@ -1,5 +1,7 @@
 ﻿using Application.Dtos.Projects;
-using Application.Validators;
+using Application.Dtos.Tasks;
+using Application.Validators.Projects;
+using Application.Validators.Tasks;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +13,8 @@ public static class ValidatorsInstaller
     {
         services.AddScoped<IValidator<CreateProjectRequest>, CreateProjectRequestValidator>();
         services.AddScoped<IValidator<UpdateProjectRequest>, UpdateProjectRequestValidator>();
-
+        services.AddScoped<IValidator<CreateTaskItemRequest>, CreateTaskItemRequestValidator>();
+        services.AddScoped<IValidator<UpdateTaskItemRequest>, UpdateTaskItemRequestValidator>();
     }
 }
+
