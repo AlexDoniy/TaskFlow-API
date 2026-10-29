@@ -1,4 +1,5 @@
-﻿using Application.Abstractions.Interfaces.Repositories;
+﻿using Application.Abstractions;
+using Application.Abstractions.Interfaces.Repositories;
 using Domain.Entities;
 using Infrastructure.Persistence.MsSQL;
 using Microsoft.EntityFrameworkCore;
@@ -22,5 +23,20 @@ public class ProjectRepository : BaseRepository<ProjectEntity>, IProjectReposito
         return result is not null;
     }
     
+    public async Task<PagedResult<ProjectEntity>> GetPagedAsync(int page, int pageSize, CancellationToken ct)
+    {
+        var totalCount = await _projectSet.CountAsync(ct);
+        var items = await _projectSet
+            .AsNoTracking()
+            .OrderByDescending(p => p.CreatedAt)
+            .ThenBy(p => p.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return new PagedResult<ProjectEntity>(items, totalCount);
+    }
+
+
 }
 

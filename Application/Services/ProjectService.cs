@@ -1,7 +1,9 @@
 ﻿using Application.Abstractions.Interfaces;
 using Application.Abstractions.Interfaces.Repositories;
 using Application.Abstractions.Interfaces.Services;
+using Application.Dtos;
 using Application.Dtos.Projects;
+using Application.Dtos.Tasks;
 using Application.Exceptions;
 using Domain.Entities;
 using FluentValidation;
@@ -16,12 +18,15 @@ public class ProjectService : IProjectService
     private readonly TimeProvider _timeProvider;
     private readonly IValidator<CreateProjectRequest> _createProjectRequestValidator;
     private readonly IValidator<UpdateProjectRequest> _updateProjectRequestValidator;
+    private readonly IValidator<GetProjectsRequest> _getProjectsRequestValidator;
+
 
     public ProjectService(IProjectRepository projectRepository,
         IUnitOfWork unitOfWork,
         TimeProvider timeProvider,
         IValidator<CreateProjectRequest> createProjectRequestValidator,
-        IValidator<UpdateProjectRequest> updateProjectRequestValidator
+        IValidator<UpdateProjectRequest> updateProjectRequestValidator,
+        IValidator<GetProjectsRequest> getProjectsRequestValidator
         )
     {
         _unitOfWork = unitOfWork;
@@ -29,6 +34,7 @@ public class ProjectService : IProjectService
         _timeProvider = timeProvider;
         _createProjectRequestValidator = createProjectRequestValidator;
         _updateProjectRequestValidator = updateProjectRequestValidator;
+        _getProjectsRequestValidator = getProjectsRequestValidator;
     }
 
     public async Task<ProjectResponse> CreateAsync(CreateProjectRequest request, CancellationToken ct)
@@ -57,14 +63,21 @@ public class ProjectService : IProjectService
         return ToResponse(project);
     }
 
-    public async Task<IReadOnlyList<ProjectResponse>> GetAllAsync(CancellationToken ct)
+    public async Task<PagedResponse<ProjectResponse>> GetAllAsync(GetProjectsRequest request, CancellationToken ct)
     {
-        var projects = await _projectRepository.GetAllAsync(ct);
-        var responseCollection = projects
+        await _getProjectsRequestValidator.ValidateAndThrowAsync(request, ct);
+        
+        var result = await _projectRepository.GetPagedAsync(request.Page, request.PageSize, ct);
+        var items = result.Items
             .Select(ToResponse)
             .ToList();
-
-        return responseCollection;
+        
+        return new PagedResponse<ProjectResponse>{
+            Items = items,
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = result.TotalCount
+        };
     }
 
     public async Task<ProjectResponse> UpdateAsync(Guid id, UpdateProjectRequest request, CancellationToken ct)

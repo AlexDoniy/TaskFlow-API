@@ -37,6 +37,7 @@ public class TasksController : ControllerBase
     
     [HttpGet]
     [ProducesResponseType<PagedResponse<TaskItemResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PagedResponse<TaskItemResponse>>> GetAll(Guid projectId, [FromQuery] GetTaskItemsRequest query, CancellationToken ct)
     {

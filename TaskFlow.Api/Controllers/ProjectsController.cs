@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Interfaces.Services;
+using Application.Dtos;
 using Application.Dtos.Projects;
 using Application.Dtos.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -36,10 +37,11 @@ public class ProjectsController : ControllerBase
     }
     
     [HttpGet]
-    [ProducesResponseType<IReadOnlyList<ProjectResponse>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<ProjectResponse>>> GetAll(CancellationToken ct)
+    [ProducesResponseType<PagedResponse<ProjectResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PagedResponse<ProjectResponse>>> GetAll([FromQuery]GetProjectsRequest query, CancellationToken ct)
     {
-        var projects = await _projectService.GetAllAsync(ct);
+        var projects = await _projectService.GetAllAsync(query, ct);
         return Ok(projects);
     }
 
