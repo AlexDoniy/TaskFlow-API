@@ -1,6 +1,8 @@
-﻿using Application.Abstractions.Interfaces;
+﻿using Application.Abstractions;
+using Application.Abstractions.Interfaces;
 using Application.Abstractions.Interfaces.Repositories;
 using Application.Abstractions.Interfaces.Services;
+using Application.Dtos;
 using Application.Dtos.Tasks;
 using Application.Exceptions;
 using Domain.Entities;
@@ -15,6 +17,7 @@ public class TaskItemService : ITaskItemService
     private readonly IProjectRepository _projectRepository;
     private readonly TimeProvider _timeProvider;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IValidator<GetTaskItemsRequest> _getTaskItemsValidator;
     private readonly IValidator<CreateTaskItemRequest> _createTaskItemValidator;
     private readonly IValidator<UpdateTaskItemRequest> _updateTaskItemValidator;
     private readonly IValidator<UpdateTaskItemStatusRequest> _updateTaskItemStatusValidator;
@@ -26,7 +29,8 @@ public class TaskItemService : ITaskItemService
         TimeProvider timeProvider,
         IValidator<CreateTaskItemRequest> createTaskItemValidator,
         IValidator<UpdateTaskItemRequest> updateTaskItemValidator,
-        IValidator<UpdateTaskItemStatusRequest> updateTaskItemStatusValidator)
+        IValidator<UpdateTaskItemStatusRequest> updateTaskItemStatusValidator,
+        IValidator<GetTaskItemsRequest> getTaskItemsValidator)
     {
         _taskItemRepository = taskItemRepository;
         _projectRepository = projectRepository;
@@ -35,6 +39,7 @@ public class TaskItemService : ITaskItemService
         _createTaskItemValidator = createTaskItemValidator;
         _updateTaskItemValidator = updateTaskItemValidator;
         _updateTaskItemStatusValidator = updateTaskItemStatusValidator;
+        _getTaskItemsValidator = getTaskItemsValidator;
     }
 
     public async Task<TaskItemResponse> CreateAsync(Guid projectId, CreateTaskItemRequest request, CancellationToken ct)
@@ -69,16 +74,23 @@ public class TaskItemService : ITaskItemService
         return ToResponse(task);
     }
     
-    public async Task<IReadOnlyList<TaskItemResponse>> GetAllAsync(Guid projectId, CancellationToken ct)
+    public async Task<PagedResponse<TaskItemResponse>> GetAllAsync(Guid projectId, GetTaskItemsRequest request, CancellationToken ct)
     {
+        await _getTaskItemsValidator.ValidateAndThrowAsync(request, ct);
         if (!await _projectRepository.ExistsAsync(projectId, ct))  throw new NotFoundException("Project", projectId);
         
-        var tasks = await _taskItemRepository.GetAllByProjectAsync(projectId, ct);
-        var responseCollection = tasks
+        var result = await _taskItemRepository.GetPagedByProjectAsync(projectId, request.Page, request.PageSize, ct);
+        var items = result.Items
             .Select(ToResponse)
             .ToList();
 
-        return responseCollection;
+        return new PagedResponse<TaskItemResponse>
+        {
+            Items = items,
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = result.TotalCount
+        };
     }
     
     public async Task<TaskItemResponse> UpdateAsync(Guid projectId, Guid id, UpdateTaskItemRequest request, CancellationToken ct)

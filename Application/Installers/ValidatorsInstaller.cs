@@ -17,7 +17,7 @@ public static class ValidatorsInstaller
         services.AddScoped<IValidator<CreateTaskItemRequest>, CreateTaskItemRequestValidator>();
         services.AddScoped<IValidator<UpdateTaskItemRequest>, UpdateTaskItemRequestValidator>();
         services.AddScoped<IValidator<UpdateTaskItemStatusRequest>, UpdateTaskItemStatusRequestValidator>();
-
+        services.AddScoped<IValidator<GetTaskItemsRequest>, GetTaskItemsRequestValidator>();
     }
 }
 

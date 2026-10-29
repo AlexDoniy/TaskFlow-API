@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Interfaces.Services;
+using Application.Dtos;
 using Application.Dtos.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,11 +36,11 @@ public class TasksController : ControllerBase
     }
     
     [HttpGet]
-    [ProducesResponseType<IReadOnlyList<TaskItemResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedResponse<TaskItemResponse>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<TaskItemResponse>>> GetAll(Guid projectId, CancellationToken ct)
+    public async Task<ActionResult<PagedResponse<TaskItemResponse>>> GetAll(Guid projectId, [FromQuery] GetTaskItemsRequest query, CancellationToken ct)
     {
-        var tasks = await _taskService.GetAllAsync(projectId, ct);
+        var tasks = await _taskService.GetAllAsync(projectId, query, ct);
         return Ok(tasks);
     }
     
